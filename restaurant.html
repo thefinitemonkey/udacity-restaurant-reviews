@@ -32,11 +32,6 @@
 
   <!-- Beginning main -->
   <main id="maincontent">
-    <!-- Beginning map -->
-    <section id="map-container">
-      <div id="map"></div>
-    </section>
-    <!-- End map -->
     <!-- Beginning restaurant -->
     <section id="restaurant-container">
       <h2 id="restaurant-name">
@@ -45,10 +40,17 @@
         <p id="restaurant-cuisine"></p>
     </section>
     <section id="restaurant-address-and-hours">
-        <p id="restaurant-address"></p>
-        <div class="restaurant-hours-flex">
-          <table id="restaurant-hours"></table>
-        </div>
+      <p id="restaurant-address" aria-labelledby="restaurant-address-label"></p>
+      <label id="restaurant-address-label" class="restaurant-info-label">address</label>
+      <!-- Beginning map -->
+      <section id="map-container">
+        <div id="map"></div>
+      </section>
+      <!-- End map -->
+      <div class="restaurant-hours-flex">
+        <table id="restaurant-hours" aria-labelledby="restaurant-hours-label"></table>
+        <label id="restaurant-hours-label" class="restaurant-info-label">hours of operation</label>
+      </div>
     </section>
     <!-- end restaurant -->
     <!-- Beginning reviews -->

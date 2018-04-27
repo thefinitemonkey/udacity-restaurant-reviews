@@ -222,10 +222,10 @@ nav h1 a {
 */
 .inside #map-container {
   background: blue none repeat scroll 0 0;
-  height: 100%;
-  position: fixed;
+  height: 200px;
+  /*position: fixed;
   right: 0;
-  /*top: 80px;
+  top: 80px;
   width: 50%;*/
 }
 .inside #map {
@@ -257,6 +257,10 @@ nav h1 a {
 }
 #restaurant-address {
   font-size: 18px;
+  font-weight: 700;
+}
+.restaurant-info-label {
+  display: none;
 }
 #restaurant-cuisine {
   background-color: #333;
@@ -309,6 +313,7 @@ nav h1 a {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-top: 25px;
 }
 #restaurant-hours {
   width: 100%;
@@ -322,4 +327,7 @@ nav h1 a {
 }
 #restaurant-hours td {
   color: #666;
+}
+.restaurant-review-user {
+  font-weight: 700;
 }
