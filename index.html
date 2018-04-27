@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,12 +25,14 @@
       <div class="filter-options">
         <h2>Filter Results</h2>
         <div class="filter-selects">
-          <select id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()">
+          <select id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()" aria-labelledby="neighborhoods-label">
             <option value="all">All Neighborhoods</option>
           </select>
-          <select id="cuisines-select" name="cuisines" onchange="updateRestaurants()">
+          <label id="neighborhoods-label" class="filter-label">by neighborhoods</label>
+          <select id="cuisines-select" name="cuisines" onchange="updateRestaurants()" aria-labelledby="cuisines-label">
             <option value="all">All Cuisines</option>
           </select>
+          <label id="cuisines-label" class="filter-label">by cuisines</label>
         </div>
       </div>
       <ul id="restaurants-list"></ul>
