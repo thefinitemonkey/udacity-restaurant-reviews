@@ -66,7 +66,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const imgurl2x = imgparts[0] + "_2x." + imgparts[1];
   image.src = imgurl1x;
   image.srcset = `${imgurl1x} 500w, ${imgurl2x} 800w`;
-  image.alt = restaurant.name + " promotional image";
+  image.alt = restaurant.name + " restaurant promotional image";
 
   const cuisine = document.getElementById("restaurant-cuisine");
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -106,7 +106,7 @@ fillRestaurantHoursHTML = (
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById("reviews-container");
-  const title = document.createElement("h2");
+  const title = document.createElement("h3");
   title.innerHTML = "Reviews";
   container.appendChild(title);
 

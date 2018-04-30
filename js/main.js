@@ -146,7 +146,7 @@ createRestaurantHTML = (restaurant) => {
   const imgurl2x = imgparts[0] + '_2x.' + imgparts[1];
   image.src = imgurl1x;
   image.srcset = `${imgurl1x} 300w, ${imgurl2x} 600w`;
-  image.alt = restaurant.name + ' promo image';
+  image.alt = restaurant.name + ' restaurant promotional image';
   li.append(image);
 
   const div = document.createElement('div');
