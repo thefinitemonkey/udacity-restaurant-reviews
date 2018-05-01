@@ -1,14 +1,14 @@
 import idb from "idb";
 
 var cacheID = "mws-restaruant-001";
-
+/*
 const dbPromise = idb.open("fm-udacity-restaurant", 0, upgradeDB => {
   switch (upgradeDB.oldVersion) {
     case 0:
       upgradeDB.createObjectStore("restaurants", {keyPath: "id"});
   }
 });
-
+*/
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(cacheID).then(cache => {

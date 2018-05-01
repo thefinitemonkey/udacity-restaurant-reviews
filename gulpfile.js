@@ -3,6 +3,7 @@ const gulp = require("gulp");
 const gulpLoadPlugins = require("gulp-load-plugins");
 const browserSync = require("browser-sync").create();
 const del = require("del");
+const concat = require("gulp-concat");
 const wiredep = require("wiredep").stream;
 const runSequence = require("run-sequence");
 
@@ -28,8 +29,20 @@ gulp.task("js", () => {
     .src("app/js/**/*.js")
     .pipe($.plumber())
     .pipe($.if(dev, $.sourcemaps.init()))
+    .pipe($.babel())
     .pipe($.if(dev, $.sourcemaps.write(".")))
     .pipe(gulp.dest(".tmp/js"))
+    .pipe(reload({ stream: true }));
+});
+
+gulp.task("sw", () => {
+  return gulp
+    .src("app/sw.js")
+    .pipe($.plumber())
+    .pipe($.if(dev, $.sourcemaps.init()))
+    .pipe($.babel())
+    .pipe($.if(dev, $.sourcemaps.write(".")))
+    .pipe(gulp.dest(".tmp/"))
     .pipe(reload({ stream: true }));
 });
 
@@ -107,7 +120,7 @@ gulp.task("extras", () => {
 gulp.task("clean", del.bind(null, [".tmp", "dist"]));
 
 gulp.task("serve", () => {
-  runSequence(["clean", "wiredep"], ["css", "js", "fonts"], () => {
+  runSequence(["clean", "wiredep"], ["css", "js", "sw", "fonts"], () => {
     browserSync.init({
       notify: false,
       port: 8000,
@@ -125,6 +138,7 @@ gulp.task("serve", () => {
 
     gulp.watch("app/css/**/*.css", ["css"]);
     gulp.watch("app/js/**/*.js", ["js"]);
+    gulp.watch("app/sw.js", ["sw"]);
     gulp.watch("app/fonts/**/*", ["fonts"]);
     gulp.watch("bower.json", ["wiredep", "fonts"]);
   });
