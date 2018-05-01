@@ -1,4 +1,12 @@
 var cacheID = "mws-restaruant-001";
+import idb from "idb";
+
+const dbPromise = idb.open("fm-udacity-restaurant", 0, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore("restaurants", {keyPath: "id"});
+  }
+});
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -9,7 +17,6 @@ self.addEventListener("install", event => {
           "/index.html",
           "/restaurant.html",
           "/css/styles.css",
-          "/data/restaurants.json",
           "/js/",
           "/js/dbhelper.js",
           "/js/main.js",
@@ -31,10 +38,12 @@ self.addEventListener("fetch", event => {
     const cacheURL = "restaurant.html";
     cacheRequest = new Request(cacheURL);
   }
-  if (cacheUrlObj.hostname !== "localhost") {
-    event.request.mode = "no-cors";
-  }
+  event.request.mode = "no-cors";
 
+  handleNonAJAXEvent(event);
+});
+
+handleNonAJAXEvent = event => {
   event.respondWith(
     caches.match(cacheRequest).then(response => {
       return (
@@ -50,12 +59,15 @@ self.addEventListener("fetch", event => {
             if (event.request.url.indexOf(".jpg") > -1) {
               return caches.match("/img/na.png");
             }
-            return new Response("Application is not connected to the internet", {
-              status: 404,
-              statusText: "Application is not connected to the internet"
-            });
+            return new Response(
+              "Application is not connected to the internet",
+              {
+                status: 404,
+                statusText: "Application is not connected to the internet"
+              }
+            );
           })
       );
     })
   );
-});
+};
