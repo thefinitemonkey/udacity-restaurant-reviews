@@ -39,7 +39,7 @@ self.addEventListener("fetch", event => {
     cacheRequest = new Request(cacheURL);
   }
 
-  // Request going to the API get handled separately from those
+  // Requests going to the API get handled separately from those
   // going to other destinations
   const checkURL = new URL(event.request.url);
   if (checkURL.port === "1337") {
@@ -55,8 +55,10 @@ self.addEventListener("fetch", event => {
 });
 
 const handleAJAXEvent = (event, id) => {
-  let finalJSON;
-
+  // Check the IndexedDB to see if the JSON for the API
+  // has already been stored there. If so, return that.
+  // If not, request it from the API, store it, and then
+  // return it back.
   event.respondWith(
     dbPromise
       .then(db => {
@@ -92,6 +94,9 @@ const handleAJAXEvent = (event, id) => {
 };
 
 const handleNonAJAXEvent = (event, cacheRequest) => {
+  // Check if the HTML request has previously been cached.
+  // If so, return the response from the cache. If not,
+  // fetch the request, cache it, and then return it.
   event.respondWith(
     caches.match(cacheRequest).then(response => {
       return (
