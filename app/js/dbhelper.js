@@ -24,7 +24,9 @@ class DBHelper {
     }
     fetch(fetchURL, { method: 'GET' })
       .then(response => {
+        //console.log("dbhelper response: ", response.clone().text().then(text => {console.log(text)}));
         response.json().then(restaurants => {
+          console.log("restaurants JSON: ", restaurants);
           callback(null, restaurants);
         });
       })
