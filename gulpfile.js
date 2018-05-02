@@ -1,6 +1,9 @@
 // generated on 2018-05-01 using generator-webapp 3.0.1
 const gulp = require("gulp");
 const gulpLoadPlugins = require("gulp-load-plugins");
+const browserify = require("browserify");
+const babelify = require("babelify");
+const source = require("vinyl-source-stream");
 const browserSync = require("browser-sync").create();
 const del = require("del");
 const concat = require("gulp-concat");
@@ -36,14 +39,16 @@ gulp.task("js", () => {
 });
 
 gulp.task("sw", () => {
-  return gulp
-    .src("app/sw.js")
-    .pipe($.plumber())
-    .pipe($.if(dev, $.sourcemaps.init()))
-    .pipe($.babel())
-    .pipe($.if(dev, $.sourcemaps.write(".")))
+  const b = browserify({
+    debug: true
+  });
+
+  return b
+    .transform(babelify)
+    .require("app/sw.js", {entry:true})
+    .bundle()
+    .pipe(source("sw.js"))
     .pipe(gulp.dest(".tmp/"))
-    .pipe(reload({ stream: true }));
 });
 
 function lint(files) {
@@ -62,7 +67,7 @@ gulp.task("lint:test", () => {
   return lint("test/spec/**/*.js").pipe(gulp.dest("test/spec"));
 });
 
-gulp.task("html", ["css", "js"], () => {
+gulp.task("html", ["css", "js", "sw"], () => {
   return gulp
     .src("app/*.html")
     .pipe($.useref({ searchPath: [".tmp", "app", "."] }))
@@ -94,9 +99,7 @@ gulp.task("images", () => {
 });
 
 gulp.task("icons", () => {
-  return gulp
-    .src("app/icons/**/*")
-    .pipe(gulp.dest("dist/icons"));
+  return gulp.src("app/icons/**/*").pipe(gulp.dest("dist/icons"));
 });
 
 gulp.task("fonts", () => {
@@ -133,7 +136,12 @@ gulp.task("serve", () => {
     });
 
     gulp
-      .watch(["app/*.html", "app/images/**/*", "app/icons/**/*", ".tmp/fonts/**/*"])
+      .watch([
+        "app/*.html",
+        "app/images/**/*",
+        "app/icons/**/*",
+        ".tmp/fonts/**/*"
+      ])
       .on("change", reload);
 
     gulp.watch("app/css/**/*.css", ["css"]);
@@ -185,9 +193,13 @@ gulp.task("wiredep", () => {
     .pipe(gulp.dest("app"));
 });
 
-gulp.task("build", ["lint", "html", "images", "icons", "fonts", "extras"], () => {
-  return gulp.src("dist/**/*").pipe($.size({ title: "build", gzip: true }));
-});
+gulp.task(
+  "build",
+  ["lint", "html", "images", "icons", "fonts", "extras"],
+  () => {
+    return gulp.src("dist/**/*").pipe($.size({ title: "build", gzip: true }));
+  }
+);
 
 gulp.task("default", () => {
   return new Promise(resolve => {

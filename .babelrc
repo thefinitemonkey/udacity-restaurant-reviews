@@ -1,4 +1,3 @@
 {
-  "presets": ["es2015"],
-  "parserOpts": [{ "strictMode": false }]
+  "presets": ["es2015"]
 }
