@@ -1,13 +1,14 @@
 let restaurants, neighborhoods, cuisines;
 var map;
 var markers = [];
+let firstLoad = true;
+let liveMap = false;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener("DOMContentLoaded", event => {
-  fetchNeighborhoods();
-  fetchCuisines();
+  //updateRestaurants();
 });
 
 /**
@@ -71,15 +72,6 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
   updateRestaurants();
 };
 
@@ -105,6 +97,7 @@ const updateRestaurants = () => {
         console.error(error);
       } else {
         resetRestaurants(restaurants);
+        console.log("Filling restaurants");
         fillRestaurantsHTML();
       }
     }
@@ -129,12 +122,45 @@ const resetRestaurants = restaurants => {
 /**
  * Create all restaurants HTML and add them to the webpage.
  */
+const switchToLiveMap = event => {
+  updateRestaurants();
+  if (liveMap) return;
+
+  document.getElementById("mapImg").remove();
+
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+  self.map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+
+  liveMap = true;
+};
+
 const fillRestaurantsHTML = (restaurants = self.restaurants) => {
   const ul = document.getElementById("restaurants-list");
   restaurants.forEach(restaurant => {
     ul.append(createRestaurantHTML(restaurant));
   });
-  addMarkersToMap();
+  if (firstLoad) {
+    fetchNeighborhoods();
+    fetchCuisines();
+    const mapURL = DBHelper.getStaticAllRestaurantsMapImage(self.restaurants);
+    const mapDiv = document.getElementById("map");
+    const mapImg = document.createElement("img");
+    mapImg.id = "mapImg";
+    mapImg.onclick = e => switchToLiveMap();
+    mapImg.src = mapURL;
+    mapDiv.append(mapImg);
+
+    firstLoad = false;
+  } else {
+    addMarkersToMap();
+  }
 };
 
 /**
@@ -151,7 +177,7 @@ const createRestaurantHTML = restaurant => {
   image.src = imgurl1x;
   image.srcset = `${imgurl1x} 300w, ${imgurl2x} 600w`;
   image.alt = restaurant.name + " restaurant promotional image";
-  //li.append(image);
+  li.append(image);
 
   const div = document.createElement("div");
   div.className = "restaurant-text-area";

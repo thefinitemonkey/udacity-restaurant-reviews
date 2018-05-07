@@ -1,6 +1,8 @@
 /**
  * Common database helper functions.
  */
+let fetchedCuisines;
+let fetchedNeighborhoods;
 class DBHelper {
   /**
    * Database URL.
@@ -20,13 +22,34 @@ class DBHelper {
     if (!id) {
       fetchURL = DBHelper.DATABASE_URL;
     } else {
-      fetchURL = DBHelper.DATABASE_URL + '/' + id;
+      fetchURL = DBHelper.DATABASE_URL + "/" + id;
     }
-    fetch(fetchURL, { method: 'GET' })
+    fetch(fetchURL, { method: "GET" })
       .then(response => {
         //console.log("dbhelper response: ", response.clone().text().then(text => {console.log(text)}));
         response.json().then(restaurants => {
           console.log("restaurants JSON: ", restaurants);
+
+          if (restaurants.length) {
+            // Get all neighborhoods from all restaurants
+            const neighborhoods = restaurants.map(
+              (v, i) => restaurants[i].neighborhood
+            );
+            // Remove duplicates from neighborhoods
+            fetchedNeighborhoods = neighborhoods.filter(
+              (v, i) => neighborhoods.indexOf(v) == i
+            );
+
+            // Get all cuisines from all restaurants
+            const cuisines = restaurants.map(
+              (v, i) => restaurants[i].cuisine_type
+            );
+            // Remove duplicates from cuisines
+            fetchedCuisines = cuisines.filter(
+              (v, i) => cuisines.indexOf(v) == i
+            );
+          }
+
           callback(null, restaurants);
         });
       })
@@ -67,7 +90,7 @@ class DBHelper {
           callback(null, restaurant);
         } else {
           // Restaurant does not exist in the database
-          callback('Restaurant does not exist', null);
+          callback("Restaurant does not exist", null);
         }
       }
     }, id);
@@ -119,11 +142,11 @@ class DBHelper {
         callback(error, null);
       } else {
         let results = restaurants;
-        if (cuisine != 'all') {
+        if (cuisine != "all") {
           // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
-        if (neighborhood != 'all') {
+        if (neighborhood != "all") {
           // filter by neighborhood
           results = results.filter(r => r.neighborhood == neighborhood);
         }
@@ -136,6 +159,11 @@ class DBHelper {
    * Fetch all neighborhoods with proper error handling.
    */
   static fetchNeighborhoods(callback) {
+    if (fetchedNeighborhoods) {
+      callback(null, fetchedNeighborhoods);
+      return;
+    }
+
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
@@ -146,10 +174,11 @@ class DBHelper {
           (v, i) => restaurants[i].neighborhood
         );
         // Remove duplicates from neighborhoods
-        const uniqueNeighborhoods = neighborhoods.filter(
+        fetchedNeighborhoods = neighborhoods.filter(
           (v, i) => neighborhoods.indexOf(v) == i
         );
-        callback(null, uniqueNeighborhoods);
+
+        callback(null, fetchedNeighborhoods);
       }
     });
   }
@@ -158,6 +187,11 @@ class DBHelper {
    * Fetch all cuisines with proper error handling.
    */
   static fetchCuisines(callback) {
+    if (fetchedCuisines) {
+      callback(null, fetchedCuisines);
+      return;
+    }
+
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
@@ -166,10 +200,9 @@ class DBHelper {
         // Get all cuisines from all restaurants
         const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
         // Remove duplicates from cuisines
-        const uniqueCuisines = cuisines.filter(
-          (v, i) => cuisines.indexOf(v) == i
-        );
-        callback(null, uniqueCuisines);
+        fetchedCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i);
+
+        callback(null, fetchedCuisines);
       }
     });
   }
@@ -203,5 +236,24 @@ class DBHelper {
       animation: google.maps.Animation.DROP
     });
     return marker;
+  }
+
+  static getStaticAllRestaurantsMapImage(restaurants) {
+    let loc = {
+      lat: 40.722216,
+      lng: -73.987501
+    };
+    // Create static map image for initial display
+    let mapURL = `http://maps.googleapis.com/maps/api/staticmap?center=${
+      loc.lat
+    },${loc.lng}&zoom=12&size=${
+      document.documentElement.clientWidth
+    }x400&markers=color:red`;
+    restaurants.forEach(r => {
+      mapURL += `|${r.latlng.lat},${r.latlng.lng}`;
+    });
+    mapURL += "&key=AIzaSyAdT13qA8BnDvyA5TfNAhNzKnN0eDZD0bg";
+
+    return mapURL;
   }
 }

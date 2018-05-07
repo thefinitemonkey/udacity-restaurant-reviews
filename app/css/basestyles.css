@@ -91,6 +91,10 @@ section {
   height: 400px;
   width: 100%;
   background-color: #ccc;
+  text-align: center;
+}
+#mapImg {
+  cursor: pointer;
 }
 .map-aria-description {
   display: none;
