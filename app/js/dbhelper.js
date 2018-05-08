@@ -24,38 +24,28 @@ class DBHelper {
     } else {
       fetchURL = DBHelper.DATABASE_URL + "/" + id;
     }
-    fetch(fetchURL, { method: "GET" })
-      .then(response => {
-        //console.log("dbhelper response: ", response.clone().text().then(text => {console.log(text)}));
-        response.json().then(restaurants => {
-          console.log("restaurants JSON: ", restaurants);
-
+    fetch(fetchURL, {method: "GET"}).then(response => {
+      response
+        .json()
+        .then(restaurants => {
+          console.log("Restaurants: ", restaurants);
           if (restaurants.length) {
             // Get all neighborhoods from all restaurants
-            const neighborhoods = restaurants.map(
-              (v, i) => restaurants[i].neighborhood
-            );
+            const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
             // Remove duplicates from neighborhoods
-            fetchedNeighborhoods = neighborhoods.filter(
-              (v, i) => neighborhoods.indexOf(v) == i
-            );
+            fetchedNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
 
             // Get all cuisines from all restaurants
-            const cuisines = restaurants.map(
-              (v, i) => restaurants[i].cuisine_type
-            );
+            const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
             // Remove duplicates from cuisines
-            fetchedCuisines = cuisines.filter(
-              (v, i) => cuisines.indexOf(v) == i
-            );
+            fetchedCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i);
           }
 
           callback(null, restaurants);
         });
-      })
-      .catch(error => {
-        callback(`Request failed. Returned ${error}`, null);
-      });
+    }).catch(error => {
+      callback(`Request failed. Returned ${error}`, null);
+    });
 
     /*
       xhr.onload = () => {
@@ -96,6 +86,21 @@ class DBHelper {
     }, id);
   }
 
+  static fetchRestaurantReviewsById(id, callback) {
+    // Fetch all reviews for the specific restaurant
+    const fetchURL = DBHelper.DATABASE_URL + "/reviews/?restaurant_id=" + id;
+    fetch(fetchURL, {method: "GET"}).then(response => {
+      if (!response.clone().ok && !response.clone().redirected) {
+        throw "No reviews available";
+      }
+      response
+        .json()
+        .then(result => {
+          callback(null, result);
+        })
+    }).catch(error => callback(error, null));
+  }
+
   /**
    * Fetch restaurants by a cuisine type with proper error handling.
    */
@@ -131,11 +136,7 @@ class DBHelper {
   /**
    * Fetch restaurants by a cuisine and a neighborhood with proper error handling.
    */
-  static fetchRestaurantByCuisineAndNeighborhood(
-    cuisine,
-    neighborhood,
-    callback
-  ) {
+  static fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, callback) {
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
@@ -170,13 +171,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all neighborhoods from all restaurants
-        const neighborhoods = restaurants.map(
-          (v, i) => restaurants[i].neighborhood
-        );
+        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
         // Remove duplicates from neighborhoods
-        fetchedNeighborhoods = neighborhoods.filter(
-          (v, i) => neighborhoods.indexOf(v) == i
-        );
+        fetchedNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
 
         callback(null, fetchedNeighborhoods);
       }
@@ -228,13 +225,15 @@ class DBHelper {
    * Map marker for a restaurant.
    */
   static mapMarkerForRestaurant(restaurant, map) {
-    const marker = new google.maps.Marker({
-      position: restaurant.latlng,
-      title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
-      map: map,
-      animation: google.maps.Animation.DROP
-    });
+    const marker = new google
+      .maps
+      .Marker({
+        position: restaurant.latlng,
+        title: restaurant.name,
+        url: DBHelper.urlForRestaurant(restaurant),
+        map: map,
+        animation: google.maps.Animation.DROP
+      });
     return marker;
   }
 
@@ -245,10 +244,8 @@ class DBHelper {
     };
     // Create static map image for initial display
     let mapURL = `http://maps.googleapis.com/maps/api/staticmap?center=${
-      loc.lat
-    },${loc.lng}&zoom=12&size=${
-      document.documentElement.clientWidth
-    }x400&markers=color:red`;
+    loc.lat},${loc.lng}&zoom=12&size=${
+    document.documentElement.clientWidth}x400&markers=color:red`;
     restaurants.forEach(r => {
       mapURL += `|${r.latlng.lat},${r.latlng.lng}`;
     });

@@ -97,7 +97,6 @@ const updateRestaurants = () => {
         console.error(error);
       } else {
         resetRestaurants(restaurants);
-        console.log("Filling restaurants");
         fillRestaurantsHTML();
       }
     }
