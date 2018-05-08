@@ -14,6 +14,9 @@ This code covers Stage 2 of the Restaurant Reviews web application for the Mobil
 * Gulp build based on Yeoman scaffold
 * Utilizes IDB for the IndexedDB
 * All other rubric requirements
+
+Icons credit to Flaticons
+
 ## How to view
 
 This code is scaffolded with Yeoman and requires that [node.js ](https://nodejs.org/en/download/) and [npm](https://www.npmjs.com/get-npm) be installed. Please install these first. Additionally, this project depends on a separate project provided by Udacity to create an API end-point. This project is available on [git ](https://github.com/udacity/mws-restaurant-stage-2). Please follow the instructions there.

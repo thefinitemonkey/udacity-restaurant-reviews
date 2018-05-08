@@ -78,6 +78,7 @@
   justify-content: space-between;
   min-height: 170px;
   max-height: 170px;
+  position: relative;
 }
 #restaurants-list li h1 {
   color: #f18200;

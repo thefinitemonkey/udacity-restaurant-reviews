@@ -186,6 +186,16 @@ const createRestaurantHTML = restaurant => {
   name.innerHTML = restaurant.name;
   div.append(name);
 
+  const favoriteDiv = document.createElement("div");
+  favoriteDiv.className = "favorite-icon";
+  const favorite = document.createElement("button");
+  favorite.style.background = restaurant["is_favorite"] ? `url("/icons/002-like.svg") no-repeat` : `url("icons/001-like-1.svg") no-repeat`;
+  favorite.innerHTML = restaurant["is_favorite"] ? restaurant.name + " is a favorite" : restaurant.name + " is not a favorite";
+  favorite.id = "favorite-icon-" + restaurant.id;
+  favorite.onclick = event => handleFavoriteClick(restaurant.id, !restaurant["is_favorite"]);
+  favoriteDiv.append(favorite);
+  div.append(favoriteDiv);
+
   const neighborhood = document.createElement("p");
   neighborhood.innerHTML = restaurant.neighborhood;
   div.append(neighborhood);
@@ -204,6 +214,10 @@ const createRestaurantHTML = restaurant => {
 
   return li;
 };
+
+const handleFavoriteClick = (id, newState) => {
+  DBHelper.updateFavorite(id, newState);
+}
 
 /**
  * Add markers for current restaurants to the map.

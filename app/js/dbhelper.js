@@ -253,4 +253,8 @@ class DBHelper {
 
     return mapURL;
   }
+
+  static updateFavorite(id, newState) {
+
+  }
 }
