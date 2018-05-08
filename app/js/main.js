@@ -1,4 +1,6 @@
-let restaurants, neighborhoods, cuisines;
+let restaurants,
+  neighborhoods,
+  cuisines;
 var map;
 var markers = [];
 let firstLoad = true;
@@ -72,6 +74,7 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
+  console.log("initMap");
   updateRestaurants();
 };
 
@@ -87,20 +90,15 @@ const updateRestaurants = () => {
 
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
-
-  DBHelper.fetchRestaurantByCuisineAndNeighborhood(
-    cuisine,
-    neighborhood,
-    (error, restaurants) => {
-      if (error) {
-        // Got an error!
-        console.error(error);
-      } else {
-        resetRestaurants(restaurants);
-        fillRestaurantsHTML();
-      }
+  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
+    if (error) {
+      // Got an error!
+      console.error(error);
+    } else {
+      resetRestaurants(restaurants);
+      fillRestaurantsHTML();
     }
-  );
+  });
 };
 
 /**
@@ -113,7 +111,9 @@ const resetRestaurants = restaurants => {
   ul.innerHTML = "";
 
   // Remove all map markers
-  self.markers.forEach(m => m.setMap(null));
+  self
+    .markers
+    .forEach(m => m.setMap(null));
   self.markers = [];
   self.restaurants = restaurants;
 };
@@ -123,19 +123,24 @@ const resetRestaurants = restaurants => {
  */
 const switchToLiveMap = event => {
   updateRestaurants();
-  if (liveMap) return;
+  if (liveMap)
+    return;
 
-  document.getElementById("mapImg").remove();
+  document
+    .getElementById("mapImg")
+    .remove();
 
   let loc = {
     lat: 40.722216,
     lng: -73.987501
   };
-  self.map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
+  self.map = new google
+    .maps
+    .Map(document.getElementById("map"), {
+      zoom: 12,
+      center: loc,
+      scrollwheel: false
+    });
 
   liveMap = true;
 };
@@ -189,8 +194,12 @@ const createRestaurantHTML = restaurant => {
   const favoriteDiv = document.createElement("div");
   favoriteDiv.className = "favorite-icon";
   const favorite = document.createElement("button");
-  favorite.style.background = restaurant["is_favorite"] ? `url("/icons/002-like.svg") no-repeat` : `url("icons/001-like-1.svg") no-repeat`;
-  favorite.innerHTML = restaurant["is_favorite"] ? restaurant.name + " is a favorite" : restaurant.name + " is not a favorite";
+  favorite.style.background = restaurant["is_favorite"]
+    ? `url("/icons/002-like.svg") no-repeat`
+    : `url("icons/001-like-1.svg") no-repeat`;
+  favorite.innerHTML = restaurant["is_favorite"]
+    ? restaurant.name + " is a favorite"
+    : restaurant.name + " is not a favorite";
   favorite.id = "favorite-icon-" + restaurant.id;
   favorite.onclick = event => handleFavoriteClick(restaurant.id, !restaurant["is_favorite"]);
   favoriteDiv.append(favorite);
@@ -206,7 +215,7 @@ const createRestaurantHTML = restaurant => {
 
   const more = document.createElement("button");
   more.innerHTML = "View Details";
-  more.onclick = function() {
+  more.onclick = function () {
     const url = DBHelper.urlForRestaurant(restaurant);
     window.location = url;
   };
@@ -216,7 +225,26 @@ const createRestaurantHTML = restaurant => {
 };
 
 const handleFavoriteClick = (id, newState) => {
-  DBHelper.updateFavorite(id, newState);
+  // Block any more clicks on this until the callback
+  const fav = document.getElementById("favorite-icon-" + id);
+  fav.onclick = null;
+
+  DBHelper.updateFavorite(id, newState, (error, resultObj) => {
+    if (error) {
+      console.log("Error updating favorite");
+      return;
+    }
+    // Update the button background for the specified favorite
+    const favorite = document.getElementById("favorite-icon-" + resultObj.id);
+    favorite.style.background = resultObj.value
+      ? `url("/icons/002-like.svg") no-repeat`
+      : `url("icons/001-like-1.svg") no-repeat`;
+    // Update properties of the restaurant data object
+    const restaurant = self.restaurants.filter(r => r.id === resultObj.id)[0];
+    if (!restaurant) return;
+    restaurant["is_favorite"] = resultObj.value;
+    favorite.onclick = event => handleFavoriteClick(restaurant.id, !restaurant["is_favorite"]);
+  });
 }
 
 /**
@@ -226,9 +254,14 @@ const addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
     const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
-    google.maps.event.addListener(marker, "click", () => {
-      window.location.href = marker.url;
-    });
-    self.markers.push(marker);
+    google
+      .maps
+      .event
+      .addListener(marker, "click", () => {
+        window.location.href = marker.url;
+      });
+    self
+      .markers
+      .push(marker);
   });
 };

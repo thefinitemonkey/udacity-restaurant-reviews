@@ -33,7 +33,7 @@ gulp.task("css", () => {
 
 gulp.task("js", () => {
   return gulp
-    .src("app/js/**/*.js")
+    .src(["app/js/**/*.js", "!app/js/**/dbhelper.js"])
     .pipe($.plumber())
     .pipe($.if(dev, $.sourcemaps.init()))
     .pipe($.babel())
@@ -55,6 +55,19 @@ gulp.task("sw", () => {
     .pipe(gulp.dest(".tmp/"));
 });
 
+gulp.task("dbhelper", () => {
+  const b = browserify({
+    debug: true
+  });
+
+  return b
+    .transform(babelify)
+    .require("app/js/dbhelper.js", { entry: true })
+    .bundle()
+    .pipe(source("dbhelper.js"))
+    .pipe(gulp.dest(".tmp/js/"));
+});
+
 function lint(files) {
   return gulp
     .src(files)
@@ -71,39 +84,9 @@ gulp.task("lint:test", () => {
   return lint("test/spec/**/*.js").pipe(gulp.dest("test/spec"));
 });
 
-gulp.task("html", ["css", "js", "sw"], () => {
+gulp.task("html", ["css", "js", "dbhelper", "sw"], () => {
   return gulp
     .src("app/*.html")
-    .pipe(
-      $.if(
-        /\index.html$/,
-        $.pipe(
-          inject(
-            gulp.src(["app/css/basestyles.css", "app/css/mainstyles.css"])
-          ),
-          {
-            starttag: "<!-- inject:css -->",
-            transform: function(filePath, file) {
-              return file.contents.toString("utf8");
-            }
-          }
-        ).pipe(
-          inject(
-            gulp.src([
-              "app/js/register.js",
-              "app/js/dbhelper.js",
-              "app/js/main.js"
-            ])
-          ),
-          {
-            starttag: "<!-- inject:js -->",
-            transform: function(filePath, file) {
-              return file.content.toString("utf8");
-            }
-          }
-        )
-      )
-    )
     .pipe($.useref({ searchPath: [".tmp", "app", "."] }))
     .pipe($.if(/\.js$/, $.uglify({ compress: { drop_console: true } })))
     .pipe($.if(/\.css$/, $.cssnano({ safe: true, autoprefixer: false })))
@@ -206,7 +189,7 @@ gulp.task("infohtmlserve", () => {
 gulp.task("serve", () => {
   runSequence(
     ["clean", "wiredep"],
-    ["mainhtmlserve", "infohtmlserve", "css", "js", "sw", "fonts"],
+    ["html", "css", "js", "dbhelper", "sw", "fonts"],
     () => {
       browserSync.init({
         notify: false,
@@ -228,8 +211,8 @@ gulp.task("serve", () => {
         ])
         .on("change", reload);
 
-      gulp.watch("app/css/**/*.css", ["mainhtmlserve", "infohtmlserve", "css"]);
-      gulp.watch("app/js/**/*.js", ["mainhtmlserve", "infohtmlserve", "js"]);
+      gulp.watch("app/css/**/*.css", ["html", "css"]);
+      gulp.watch("app/js/**/*.js", ["html", "js", "dbhelper"]);
       gulp.watch("app/sw.js", ["sw"]);
       gulp.watch("app/fonts/**/*", ["fonts"]);
       gulp.watch("bower.json", ["wiredep", "fonts"]);
