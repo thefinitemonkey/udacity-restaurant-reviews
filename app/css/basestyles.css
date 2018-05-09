@@ -74,6 +74,7 @@ section {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 #footer {
   background-color: #444;
@@ -84,7 +85,7 @@ section {
   text-align: center;
   text-transform: uppercase;
 }
-#restaurants-list li .favorite-icon button {
+#restaurants-list li .favorite-icon button, #maincontent .favorite-icon button {
   max-width: 25px;
   max-height: 25px;
   position: absolute;
@@ -99,6 +100,10 @@ section {
   padding: 0;
   color: transparent;
   font-size: 2px;
+}
+
+#maincontent .favorite-icon button {
+  top: 20px;
 }
 
 /* ====================== Map ====================== */

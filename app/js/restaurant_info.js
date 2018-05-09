@@ -19,6 +19,7 @@ window.initMap = () => {
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
     }
   });
+  DBHelper.nextPending();
 };
 
 /**
@@ -52,6 +53,22 @@ const fetchRestaurantFromURL = callback => {
  * Create restaurant HTML and add it to the webpage
  */
 const fillRestaurantHTML = (restaurant = self.restaurant) => {
+  const div = document.getElementById("maincontent");
+  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true") ? true : false;
+  const favoriteDiv = document.createElement("div");
+  favoriteDiv.className = "favorite-icon";
+  const favorite = document.createElement("button");
+  favorite.style.background = isFavorite
+    ? `url("/icons/002-like.svg") no-repeat`
+    : `url("icons/001-like-1.svg") no-repeat`;
+  favorite.innerHTML = isFavorite
+    ? restaurant.name + " is a favorite"
+    : restaurant.name + " is not a favorite";
+  favorite.id = "favorite-icon-" + restaurant.id;
+  favorite.onclick = event => handleFavoriteClick(restaurant.id, !isFavorite);
+  favoriteDiv.append(favorite);
+  div.append(favoriteDiv);
+
   const name = document.getElementById("restaurant-name");
   name.innerHTML = restaurant.name;
 
@@ -179,3 +196,12 @@ const getParameterByName = (name, url) => {
   if (!results[2]) return "";
   return decodeURIComponent(results[2].replace(/\+/g, " "));
 };
+
+const handleFavoriteClick = (id, newState) => {
+  // Update properties of the restaurant data object
+  const favorite = document.getElementById("favorite-icon-" + id);
+  self.restaurant["is_favorite"] = newState;
+  favorite.onclick = event => handleFavoriteClick(restaurant.id, !self.restaurant["is_favorite"]);
+  DBHelper.handleFavoriteClick(id, newState);
+};
+

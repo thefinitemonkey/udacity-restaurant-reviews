@@ -76,6 +76,7 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
 window.initMap = () => {
   console.log("initMap");
   updateRestaurants();
+  DBHelper.nextPending();
 };
 
 /**
@@ -191,7 +192,8 @@ const createRestaurantHTML = restaurant => {
   name.innerHTML = restaurant.name;
   div.append(name);
 
-  const isFavorite = Boolean(restaurant["is_favorite"]) === Boolean("true");
+  console.log("is_favorite: ", restaurant["is_favorite"]);
+  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true") ? true : false;
   const favoriteDiv = document.createElement("div");
   favoriteDiv.className = "favorite-icon";
   const favorite = document.createElement("button");
@@ -226,27 +228,17 @@ const createRestaurantHTML = restaurant => {
 };
 
 const handleFavoriteClick = (id, newState) => {
-  // Block any more clicks on this until the callback
-  const fav = document.getElementById("favorite-icon-" + id);
-  fav.onclick = null;
-
-  DBHelper.updateFavorite(id, newState, (error, resultObj) => {
-    if (error) {
-      console.log("Error updating favorite");
-      return;
-    }
-    // Update the button background for the specified favorite
-    const favorite = document.getElementById("favorite-icon-" + resultObj.id);
-    favorite.style.background = resultObj.value
-      ? `url("/icons/002-like.svg") no-repeat`
-      : `url("icons/001-like-1.svg") no-repeat`;
-    // Update properties of the restaurant data object
-    const restaurant = self.restaurants.filter(r => r.id === resultObj.id)[0];
-    if (!restaurant) return;
-    restaurant["is_favorite"] = resultObj.value;
-    favorite.onclick = event => handleFavoriteClick(restaurant.id, !restaurant["is_favorite"]);
-  });
-}
+  // Update properties of the restaurant data object
+  const favorite = document.getElementById("favorite-icon-" + id);
+  const restaurant = self
+    .restaurants
+    .filter(r => r.id === id)[0];
+  if (!restaurant)
+    return;
+  restaurant["is_favorite"] = newState;
+  favorite.onclick = event => handleFavoriteClick(restaurant.id, !restaurant["is_favorite"]);
+  DBHelper.handleFavoriteClick(id, newState);
+};
 
 /**
  * Add markers for current restaurants to the map.
