@@ -9,7 +9,10 @@ const dbPromise = idb.open("fm-udacity-restaurant", 3, upgradeDB => {
     case 1:
       upgradeDB.createObjectStore("reviews", {keyPath: "id"});
     case 2:
-      upgradeDB.createObjectStore("pending", {keyPath: "id", autoIncrement: true});
+      upgradeDB.createObjectStore("pending", {
+        keyPath: "id",
+        autoIncrement: true
+      });
   }
 });
 
@@ -59,6 +62,18 @@ self.addEventListener("fetch", event => {
 });
 
 const handleAJAXEvent = (event, id) => {
+  // Only use caching for GET events
+  console.log("Event request: ", event.request.method);
+  if (event.request.method !== "GET") {
+    console.log("Not a GET request: ", event.request.method);
+    return fetch(event.request)
+      .then(fetchResponse => fetchResponse.json())
+      .then(json => {
+        console.log("AJAX JSON return: ", json);
+        return json
+      });
+  }
+
   // Check the IndexedDB to see if the JSON for the API has already been stored
   // there. If so, return that. If not, request it from the API, store it, and
   // then return it back.

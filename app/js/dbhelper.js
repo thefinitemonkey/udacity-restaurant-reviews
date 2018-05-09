@@ -35,7 +35,6 @@ class DBHelper {
       response
         .json()
         .then(restaurants => {
-          console.log("Restaurants: ", restaurants);
           if (restaurants.length) {
             // Get all neighborhoods from all restaurants
             const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
@@ -118,7 +117,7 @@ class DBHelper {
         callback(error, null);
       } else {
         // Filter restaurants to have only given cuisine type
-        const results = restaurants.filter(r => r.cuisine_type == cuisine);
+        const results = restaurants.filter(r => r.cuisine_type === cuisine);
         callback(null, results);
       }
     });
@@ -134,7 +133,7 @@ class DBHelper {
         callback(error, null);
       } else {
         // Filter restaurants to have only given neighborhood
-        const results = restaurants.filter(r => r.neighborhood == neighborhood);
+        const results = restaurants.filter(r => r.neighborhood === neighborhood);
         callback(null, results);
       }
     });
@@ -262,8 +261,6 @@ class DBHelper {
   }
 
   static addPendingRequestToQueue(url, method, body) {
-    console.log("addPendingRequestToQueue: ", {url, method, body});
-
     // Open the database ad add the request details to the pending table
     const dbPromise = idb.open("fm-udacity-restaurant");
     dbPromise.then(db => {
@@ -277,9 +274,9 @@ class DBHelper {
             body
           }
         })
-    }).catch(error => {
-      console.log("Error adding request to pending queue");
-    }).then(DBHelper.nextPending());
+    })
+      .catch(error => {})
+      .then(DBHelper.nextPending());
   }
 
   static nextPending() {
@@ -287,33 +284,24 @@ class DBHelper {
   }
 
   static attemptCommitPending(callback) {
-    console.log("Attempting to commit pending");
-
     // Iterate over the pending items until there is a network failure
     let url;
     let method;
     let body;
     const dbPromise = idb.open("fm-udacity-restaurant");
     dbPromise.then(db => {
-      console.log("Getting db transaction");
       const tx = db.transaction("pending", "readwrite");
       tx
         .objectStore("pending")
         .openCursor()
         .then(cursor => {
-          console.log("Got cursor: ", cursor);
           if (!cursor) {
-            console.log("Nothing pending");
             return;
           }
           const value = cursor.value;
-          console.log("cursor value: ", value);
           url = cursor.value.data.url;
-          console.log("url: ", url);
           method = cursor.value.data.method;
-          console.log("method: ", method);
           body = cursor.value.data.body;
-          console.log("body: ", body);
 
           // If we don't have a parameter then we're on a bad record that should be tossed
           // and then move on
@@ -321,36 +309,33 @@ class DBHelper {
             cursor
               .delete()
               .then(callback());
-            console.log("Deleting cursor");
             return;
           };
 
-          console.log("Running fetch to update data");
           fetch(url, {
             body: JSON.stringify(body),
-            method
-          }).then(response => {
-            console.log("Got response from updating data: ", response);
+              method
+            })
+            .then(response => {
             // If we don't get a good response then assume we're offline
             if (!response.ok && !response.redirected) {
               return;
             }
-          }).then(() => {
-            // Success! Delete the item from the pending queue
-            console.log("Success putting updated data");
-            const deltx = db.transaction("pending", "readwrite");
-            deltx
-              .objectStore("pending")
-              .openCursor()
-              .then(cursor => {
-                cursor
-                  .delete()
-                  .then(() => {
-                    console.log("deleted cursor after putting update");
-                    callback();
-                  })
-              })
           })
+            .then(() => {
+              // Success! Delete the item from the pending queue
+              const deltx = db.transaction("pending", "readwrite");
+              deltx
+                .objectStore("pending")
+                .openCursor()
+                .then(cursor => {
+                  cursor
+                    .delete()
+                    .then(() => {
+                      callback();
+                    })
+                })
+            })
         })
         .catch(error => {
           console.log("Error reading cursor");
@@ -360,17 +345,53 @@ class DBHelper {
   }
 
   static updateCachedRestaurantData(id, updateObj) {
+    const dbPromise = idb.open("fm-udacity-restaurant");
+    // Update in the data for all restaurants first
+    dbPromise.then(db => {
+      console.log("Getting db transaction");
+      const tx = db.transaction("restaurants", "readwrite");
+      const value = tx
+        .objectStore("restaurants")
+        .get("-1")
+        .then(value => {
+          if (!value) {
+            console.log("No cached data found");
+            return;
+          }
+          const data = value.data;
+          const restaurantArr = data.filter(r => r.id === id);
+          const restaurantObj = restaurantArr[0];
+          // Update restaurantObj with updateObj details
+          if (!restaurantObj)
+            return;
+          const keys = Object.keys(updateObj);
+          keys.forEach(k => {
+            restaurantObj[k] = updateObj[k];
+          })
 
+          // Put the data back in IDB storage
+          dbPromise.then(db => {
+            const tx = db.transaction("restaurants", "readwrite");
+            tx
+              .objectStore("restaurants")
+              .put({
+                id: "-1",
+                data: data
+              });
+            return tx.complete;
+          })
+        })
+    })
   }
 
   static updateFavorite(id, newState, callback) {
     // Push the request into the waiting queue in IDB
     const url = `${DBHelper.DATABASE_URL}/${id}/?is_favorite=${newState}`;
     const method = "PUT";
+    DBHelper.updateCachedRestaurantData(id, {"is_favorite": newState});
     DBHelper.addPendingRequestToQueue(url, method);
 
     // Update the favorite data on the selected ID in the cached data
-
 
     callback(null, {id, value: newState});
   }
