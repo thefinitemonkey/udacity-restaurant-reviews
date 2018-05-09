@@ -63,6 +63,40 @@
   </main>
   <!-- End main -->
 
+  <div class="dialog-backdrop active"><div tabindex="0"></div><div role="dialog" id="reviewDialog" aria-labelledby="dialog_label" aria-modal="true" class="default_dialog">
+    <h2 id="dialog_label">Add a Review</h2>
+    <div class="dialog_form">
+      <div class="dialog_form_item">
+        <label>
+          <span class="label_text">Your Name</span>
+          <input type="text" class="review_input" id="reviewName">
+        </label>
+      </div>
+      <div class="dialog_form_item">
+        <label>
+          <span class="label_text">Rating</span>
+          <select id="reviewRating">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+      </div>
+      <div class="dialog_form_item">
+        <label>
+          <span class="label_text">Comments</span>
+          <textarea rows="4" cols="50" id="reviewComments" />
+        </label>
+      </div>
+    </div>
+    <div class="dialog_form_actions">
+      <button onclick="saveReview()">Save</button>
+      <button onclick="closeDialog()">Cancel</button>
+    </div>
+  </div><div tabindex="0"></div></div>
+
   <!-- Beginning footer -->
   <footer id="footer">
     Copyright (c) 2017

@@ -155,4 +155,34 @@ nav {
   text-align: left;
 }
 
+/*----------------------*/
+/* Dialog styles        */
+/*----------------------*/
 
+.dialog-backdrop.active {
+  position: fixed;
+  overflow-y: scroll;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+[role="dialog"] {
+  width: 50%;
+  min-width: 450px;
+  margin: 10vh auto;
+  padding: 5px;
+  border: thin #000 solid;
+  background-color: #fff;
+}
+
+.dialog_form {
+  margin: 15px;
+}
+
+.dialog_form_actions {
+  text-align: right;
+  padding: 0 20px 20px;
+}
