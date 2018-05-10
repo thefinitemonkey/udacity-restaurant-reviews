@@ -67,11 +67,9 @@ self.addEventListener("fetch", event => {
           ? "-1"
           : parts[parts.length - 1];
       } else {
-        console.log("checkURL: ", checkURL);
         id = checkURL
           .searchParams
           .get("restaurant_id");
-        console.log("restaurant id: ", id);
       }
     }
     handleAJAXEvent(event, id);
@@ -81,22 +79,17 @@ self.addEventListener("fetch", event => {
 });
 
 const handleAJAXEvent = (event, id) => {
-  console.log("handle ajax event -- id = ", id);
   // Only use caching for GET events
-  console.log("Event request: ", event.request.method);
   if (event.request.method !== "GET") {
-    console.log("Not a GET request: ", event.request.method);
     return fetch(event.request)
       .then(fetchResponse => fetchResponse.json())
       .then(json => {
-        console.log("AJAX JSON return: ", json);
         return json
       });
   }
 
   // Split these request for handling restaurants vs reviews
   if (event.request.url.indexOf("reviews") > -1) {
-    console.log("preparing to hande reviews event -- id = ", id);
     handleReviewsEvent(event, id);
   } else {
     handleRestaurantEvent(event, id);
@@ -104,7 +97,6 @@ const handleAJAXEvent = (event, id) => {
 }
 
 const handleReviewsEvent = (event, id) => {
-  console.log("handling reviews event -- id = ", {id: id});
   event.respondWith(dbPromise.then(db => {
     return db
       .transaction("reviews")
@@ -112,7 +104,6 @@ const handleReviewsEvent = (event, id) => {
       .index("restaurant_id")
       .getAll(id);
   }).then(data => {
-    console.log("idb data for reviews: ", data);
     return (data.length && data) || fetch(event.request)
       .then(fetchResponse => fetchResponse.json())
       .then(data => {
@@ -127,10 +118,8 @@ const handleReviewsEvent = (event, id) => {
       })
   }).then(finalResponse => {
     if (finalResponse[0].data) {
-      console.log("tranforming finalResponse");
       // Need to transform the data to the proper format
       const mapResponse = finalResponse.map(review => review.data);
-      console.log("review finalResponse: ", mapResponse);
       return new Response(JSON.stringify(mapResponse));
     }
     return new Response(JSON.stringify(finalResponse));
@@ -140,7 +129,6 @@ const handleReviewsEvent = (event, id) => {
 }
 
 const handleRestaurantEvent = (event, id) => {
-  console.log("handle restaurant event");
   // Check the IndexedDB to see if the JSON for the API has already been stored
   // there. If so, return that. If not, request it from the API, store it, and
   // then return it back.
@@ -168,7 +156,6 @@ const handleRestaurantEvent = (event, id) => {
 };
 
 const handleNonAJAXEvent = (event, cacheRequest) => {
-  console.log("handle non-ajax event");
   // Check if the HTML request has previously been cached. If so, return the
   // response from the cache. If not, fetch the request, cache it, and then return
   // it.
