@@ -5,6 +5,23 @@ import idb from "idb";
 
 let fetchedCuisines;
 let fetchedNeighborhoods;
+const dbPromise = idb.open("fm-udacity-restaurant", 3, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore("restaurants", {keyPath: "id"});
+    case 1:
+      {
+        const reviewsStore = upgradeDB.createObjectStore("reviews", {keyPath: "id"});
+        reviewsStore.createIndex("restaurant_id", "restaurant_id");
+      }
+    case 2:
+      upgradeDB.createObjectStore("pending", {
+        keyPath: "id",
+        autoIncrement: true
+      });
+  }
+});
+
 class DBHelper {
   /**
    * Database URL.
@@ -94,7 +111,7 @@ class DBHelper {
 
   static fetchRestaurantReviewsById(id, callback) {
     // Fetch all reviews for the specific restaurant
-    const fetchURL = DBHelper.DATABASE_URL + "/reviews/?restaurant_id=" + id;
+    const fetchURL = DBHelper.DATABASE_REVIEWS_URL + "/?restaurant_id=" + id;
     fetch(fetchURL, {method: "GET"}).then(response => {
       if (!response.clone().ok && !response.clone().redirected) {
         throw "No reviews available";
@@ -288,8 +305,14 @@ class DBHelper {
     let url;
     let method;
     let body;
-    const dbPromise = idb.open("fm-udacity-restaurant");
+    //const dbPromise = idb.open("fm-udacity-restaurant");
     dbPromise.then(db => {
+      if (!db.objectStoreNames.length) {
+        console.log("DB not available");
+        db.close();
+        return;
+      }
+
       const tx = db.transaction("pending", "readwrite");
       tx
         .objectStore("pending")
@@ -314,7 +337,7 @@ class DBHelper {
 
           fetch(url, {
             body: JSON.stringify(body),
-              method
+              method: method
             })
             .then(response => {
             // If we don't get a good response then assume we're offline
@@ -429,6 +452,14 @@ class DBHelper {
     callback(null, {id, value: newState});
   }
 
+  static saveNewReview(id, bodyObj, callback) {
+    // Push the request into the waiting queue in IDB
+    const url = `${DBHelper.DATABASE_REVIEWS_URL}`;
+    const method = "POST";
+    //DBHelper.updateCachedRestaurantReview(id, bodyObj);
+    DBHelper.addPendingRequestToQueue(url, method, bodyObj);
+  }
+
   static handleFavoriteClick(id, newState) {
     // Block any more clicks on this until the callback
     const fav = document.getElementById("favorite-icon-" + id);
@@ -445,6 +476,29 @@ class DBHelper {
         ? `url("/icons/002-like.svg") no-repeat`
         : `url("icons/001-like-1.svg") no-repeat`;
     });
+  }
+
+  static saveReview(id, name, rating, comment, callback) {
+    // Block any more clicks on the submit button until the callback
+    const btn = document.getElementById("btnSaveReview");
+    btn.onclick = null;
+
+    // Create the POST body
+    const body = {
+      restaurant_id: id,
+      name: name,
+      rating: rating,
+      comments: comment
+    }
+
+    DBHelper.saveNewReview(id, body, (error, result) => {
+      if (error) {
+        callback(error, null);
+      }
+      // Update the button onclick event
+      const btn = document.getElementById("btnSaveReview");
+      btn.onclick = event => saveReview();
+    })
   }
 }
 
