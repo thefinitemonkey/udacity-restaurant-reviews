@@ -49,7 +49,9 @@ const fetchRestaurantFromURL = callback => {
  */
 const fillRestaurantHTML = (restaurant = self.restaurant) => {
   const div = document.getElementById("maincontent");
-  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true") ? true : false;
+  const isFavorite = (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true")
+    ? true
+    : false;
   const favoriteDiv = document.createElement("div");
   favoriteDiv.className = "favorite-icon";
   const favorite = document.createElement("button");
@@ -104,12 +106,15 @@ const fillBreadcrumb = (restaurant = self.restaurant) => {
  * Get a parameter by name from page URL.
  */
 const getParameterByName = (name, url) => {
-  if (!url) url = window.location.href;
+  if (!url)
+    url = window.location.href;
   name = name.replace(/[\[\]]/g, "\\$&");
   const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
     results = regex.exec(url);
-  if (!results) return null;
-  if (!results[2]) return "";
+  if (!results)
+    return null;
+  if (!results[2])
+    return "";
   return decodeURIComponent(results[2].replace(/\+/g, " "));
 };
 
@@ -123,16 +128,27 @@ const handleFavoriteClick = (id, newState) => {
 
 const saveReview = () => {
   // Get the data points for the review
-  const name = document.getElementById("reviewName").value;
-  const rating = document.getElementById("reviewRating").value;
-  const comment = document.getElementById("reviewComment").value;
+  const name = document
+    .getElementById("reviewName")
+    .value;
+  const rating = document
+    .getElementById("reviewRating")
+    .value - 0;
+  const comment = document
+    .getElementById("reviewComment")
+    .value;
 
   console.log("reviewName: ", name);
 
   DBHelper.saveReview(self.restaurant.id, name, rating, comment, (error, review) => {
+    console.log("got saveReview callback");
     if (error) {
       console.log("Error saving review")
     }
-    window.location = "/restaurant.html?id=" + self.restaurant.id;
+    // Update the button onclick event
+    const btn = document.getElementById("btnSaveReview");
+    btn.onclick = event => saveReview();
+
+    window.location.href = "/restaurant.html?id=" + self.restaurant.id;
   });
 }

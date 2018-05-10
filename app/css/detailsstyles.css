@@ -145,3 +145,14 @@
 .restaurant-review-user {
   font-weight: 700;
 }
+#reviews-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+}
+#reviews-heading a {
+  color: #333;
+  text-decoration-line: underline;
+  font-size: 14px;
+}

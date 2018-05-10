@@ -130,9 +130,18 @@ const fillReviewsHTML = (error, reviews) => {
   }
 
   const container = document.getElementById("reviews-container");
+  const flex = document.createElement("div");
+  flex.id = "reviews-heading";
+  container.appendChild(flex);
+
   const title = document.createElement("h3");
   title.innerHTML = "Reviews";
-  container.appendChild(title);
+  flex.appendChild(title);
+
+  const addReviewLink = document.createElement("a");
+  addReviewLink.href = `/review.html?id=${self.restaurant.id}`;
+  addReviewLink.innerHTML = "Add Review";
+  flex.appendChild(addReviewLink);
 
   if (!reviews) {
     const noReviews = document.createElement("p");
@@ -158,7 +167,8 @@ const createReviewHTML = review => {
   li.appendChild(name);
 
   const date = document.createElement("p");
-  date.innerHTML = review.date;
+  const created = review.createdAt;
+  date.innerHTML = new Date(created).toLocaleString();
   li.appendChild(date);
 
   const rating = document.createElement("p");

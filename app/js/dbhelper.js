@@ -335,10 +335,12 @@ class DBHelper {
             return;
           };
 
-          fetch(url, {
+          const properties = {
             body: JSON.stringify(body),
-              method: method
-            })
+            method: method
+          }
+          console.log("sending post from queue: ", properties);
+          fetch(url, properties)
             .then(response => {
             // If we don't get a good response then assume we're offline
             if (!response.ok && !response.redirected) {
@@ -358,6 +360,7 @@ class DBHelper {
                       callback();
                     })
                 })
+              console.log("deleted pending item from queue");
             })
         })
         .catch(error => {
@@ -452,12 +455,30 @@ class DBHelper {
     callback(null, {id, value: newState});
   }
 
+  static updateCachedRestaurantReview(id, bodyObj) {
+    console.log("updating cache for new review: ", bodyObj);
+    // Push the review into the reviews store
+    dbPromise.then(db => {
+      const tx = db.transaction("reviews", "readwrite");
+      const store = tx.objectStore("reviews");
+      console.log("putting cached review into store");
+      store.put({
+        id: Date.now(),
+        "restaurant_id": id,
+        data: bodyObj
+      });
+      console.log("successfully put cached review into store");
+      return tx.complete;
+    })
+  }
+
   static saveNewReview(id, bodyObj, callback) {
     // Push the request into the waiting queue in IDB
     const url = `${DBHelper.DATABASE_REVIEWS_URL}`;
     const method = "POST";
-    //DBHelper.updateCachedRestaurantReview(id, bodyObj);
+    DBHelper.updateCachedRestaurantReview(id, bodyObj);
     DBHelper.addPendingRequestToQueue(url, method, bodyObj);
+    callback(null, null);
   }
 
   static handleFavoriteClick(id, newState) {
@@ -488,16 +509,16 @@ class DBHelper {
       restaurant_id: id,
       name: name,
       rating: rating,
-      comments: comment
+      comments: comment,
+      createdAt: Date.now()
     }
 
     DBHelper.saveNewReview(id, body, (error, result) => {
       if (error) {
         callback(error, null);
+        return;
       }
-      // Update the button onclick event
-      const btn = document.getElementById("btnSaveReview");
-      btn.onclick = event => saveReview();
+      callback(null, result);
     })
   }
 }
